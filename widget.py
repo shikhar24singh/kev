@@ -137,6 +137,13 @@ def on_submit(event=None):
 entry.bind("<Return>", on_submit)
 
 def toggle_window():
+    def toggle_window():
+        print("Hotkey triggered! Current state:", root.state())
+        if root.state() == "withdrawn":
+            root.deiconify()
+            root.after(100, lambda: entry.focus_force())
+        else:
+            root.withdraw()
     if root.state() == "withdrawn":
         root.deiconify()
         root.after(100, lambda: entry.focus_force())

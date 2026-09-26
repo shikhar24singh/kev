@@ -44,7 +44,12 @@ def run_agent_turn(user_message, messages):
 
 def main():
     print("Local File Assistant ready (qwen3:8b). Type 'exit' to quit.\n")
-    messages = []
+    messages = [{
+        "role" : "system",
+        "content" : "Never use emojis in your replies to a query"
+                    "All use web search tool to answer related to current or recent events"
+                    "Never uses em-dashes in your replies"
+    }]
 
     while True:
         user_input = input('You: ').strip()

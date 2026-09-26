@@ -2,6 +2,7 @@ import os
 import json
 import streamlit as st
 import ollama
+import time
 
 from tools import AVAILABLE_FUNCTIONS
 
@@ -65,7 +66,25 @@ def maybe_summarize_history(messages):
     } 
     return [summary_message] + recent
 
+def needs_search(user_message):
+    response = ollama.chat(
+        model = model,
+        messages=[{
+            "role" : "user",
+            "content" : (
+                "Does answering this question require current, real-time, "
+                "or recently-changed information that you might not know "
+                "from training? Answer with only YES or NO.\n\n"
+                f"Question: {user_message}"
+            )
+        }]
+    )
+    return 'yes' in response.message.content.strip().lower()
+
 def run_agent_turn(user_message, messages):
+    start_time = time.time()
+    if needs_search(user_message):
+        user_message += "\n\n(This requires current information - use web search tool to reply to this query)"
     messages.append({"role":"user", "content" : user_message})
     messages = maybe_summarize_history(messages)
 
@@ -89,6 +108,8 @@ def run_agent_turn(user_message, messages):
                 result = func(**call.function.arguments)
 
             st.info(f"called '{call.function.name}' with {call.function.arguments}")
+            elapsed_time = time.time() - start_time
+            print(f"  (model responded in {elapsed_time:.2f} seconds)")
 
             messages.append({
                 "role" : "tool",
@@ -102,7 +123,12 @@ st.title("Local AI Assistant")
 st.caption("Running qwen3:8b locally via Ollama")
 
 if "messages" not in st.session_state:
-    st.session_state.messages = load_history()
+    st.session_state.messages = load_history() or [{
+        "role" : "system",
+        "content" : "Never use emojis in your replies to a query"
+                    "All use web search tool to answer related to current or recent events"
+                    "Never uses em-dashes in your replies"
+    }]
 
 for message in st.session_state.messages:
     role, content = _extract_role_and_content(message)

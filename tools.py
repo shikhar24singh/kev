@@ -1,6 +1,7 @@
 from pathlib import Path
 import ast
 import operator
+from ddgs import DDGS
 
 
 WORKSPACE_DIR = Path(__file__).parent / "workspace"
@@ -72,6 +73,30 @@ def delete_file(filename: str, confirm: bool = False) -> str:
     path.unlink()
     return f"Deleted '{filename}'."
 
+def web_search(query: str) -> str:
+    """Search the live web for current, up-to-date information. Always use
+    this instead of answering from memory for anything involving recent
+    events, today's date, current prices, or facts that may have changed
+    since training.
+
+    Args:
+        query: The search query, e.g. 'latest Python version'
+    """
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_result = 5))
+    except Exception as e:
+        return f"Error! web saearch failed."
+
+    if not results:
+        return "No results found."
+
+    lines = []
+    for r in results:
+        snippet = r.get("body", "")[:200]
+        lines.append(f"{r['title']}\n{r['href']}\n{snippet}")
+
+    return "\n\n".join(lines)
 
 
 read_file_declaration = {
@@ -119,7 +144,8 @@ AVAILABLE_FUNCTIONS = {
     "write_file": write_file,
     "list_files": list_files,
     "calculate": calculate,
-    "delete_file": delete_file
+    "delete_file": delete_file,
+    "web_search" : web_search
 }
 
 TOOL_DECLARATIONS = [read_file_declaration, write_file_declaration]

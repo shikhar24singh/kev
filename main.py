@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 import json
+import time
 
 from tools import TOOL_DECLARATIONS, AVAILABLE_FUNCTIONS
 
@@ -20,6 +21,7 @@ model = "gemini-3.8-flash"
 
 
 def run_agent_turn(user_message, previous_interaction_id):
+    start_time = time.time()
     """Send one user message to Gemini and handle any tool calls it makes
     along the way. Return(final _answer_text, latest_interaction_id).
     """
@@ -65,6 +67,10 @@ def run_agent_turn(user_message, previous_interaction_id):
                 "call_id" : step.id,
                 "result" : [{"type" : "text", "text" : json.dumps(result)}]
             })
+
+        elapsed_time = time.time() - start_time
+
+        print(f"Model replied in {elapsed_time}s")
 
         interaction = client.interactions.create(
             model = model,

@@ -3,6 +3,7 @@ import json
 import streamlit as st
 import ollama
 import time
+from prompt_optimizer import optimize_prompt
 
 from tools import AVAILABLE_FUNCTIONS
 
@@ -46,8 +47,8 @@ def summarize_older_messages(message_to_summarize):
         model = model,
         messages = [{
             "role" : "user",
-            "content" : ("Summarise the key facts, requests and decisions from this"
-                         "conversation in 3-5 sentences, so the summary can replace"
+            "content" : ("Summarise the key facts, requests and decisions from this "
+                         "conversation in 3-5 sentences, so the summary can replace "
                          "the full message transcript below in the future context. \n\n" + transcript) ,
         }],
     )
@@ -81,7 +82,18 @@ def needs_search(user_message):
     )
     return 'yes' in response.message.content.strip().lower()
 
+def get_last_assistant_content(messages):
+    for m in reversed(messages):
+        role, content = _extract_role_and_content(m)
+        if role == "assistant" and content:
+            return content
+    return None
+
 def run_agent_turn(user_message, messages):
+    last_assistant = get_last_assistant_content(messages)
+    optimized_message = optimize_prompt(user_message, last_assistant)
+    print(f"Optimized Prompt {optimized_message}")
+    user_message = optimized_message
     start_time = time.time()
     if needs_search(user_message):
         user_message += "\n\n(This requires current information - use web search tool to reply to this query)"
@@ -125,9 +137,9 @@ st.caption("Running qwen3:8b locally via Ollama")
 if "messages" not in st.session_state:
     st.session_state.messages = load_history() or [{
         "role" : "system",
-        "content" : "Never use emojis in your replies to a query"
-                    "All use web search tool to answer related to current or recent events"
-                    "Never uses em-dashes in your replies"
+        "content" : "Never use emojis in your replies to a query. "
+                    "Always use web search tool to answer related to current or recent events. "
+                    "Never uses em-dashes in your replies."
     }]
 
 for message in st.session_state.messages:

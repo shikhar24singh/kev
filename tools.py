@@ -17,13 +17,19 @@ def _resolve_safe_path(filename: str) -> Path:
     return target
 
 def read_file(filename: str) -> str:
-    path = _resolve_safe_path(filename)
+    try:
+        path = _resolve_safe_path(filename)
+    except Exception as e:
+        return f"Error: {e}"
     if not path.exists():
         return f"Error: '{filename}' does not exist in the workspace."
     return path.read_text(encoding="utf-8")
 
 def write_file(filename: str, content: str) -> str:
-    path = _resolve_safe_path(filename)
+    try:
+        path = _resolve_safe_path(filename)
+    except Exception as e:
+        return f"Error: {e}"
     path.write_text(content, encoding="utf-8")
     return f"Wrote {len(content)} characters to '{filename}'."
 
@@ -65,8 +71,10 @@ def delete_file(filename: str, confirm: bool = False) -> str:
             f"Refusing to delete '{filename}' without confirmation. "
             "Ask the user to confirm, then call this again with confirm=true."
         )
-
-    path = _resolve_safe_path(filename)
+    try:
+        path = _resolve_safe_path(filename)
+    except ValueError as e:
+        return f"Error: {e}"
     if not path.exists:
         return f"Error: {filename} does not exist in the agent workspace."
 
@@ -84,7 +92,7 @@ def web_search(query: str) -> str:
     """
     try:
         with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_result = 5))
+            results = list(ddgs.text(query, max_results = 5))
     except Exception as e:
         return f"Error! web saearch failed."
 

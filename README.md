@@ -1,6 +1,6 @@
 # Kev AI
 
-A local-first AI assistant that uses an LLM to understand user requests, call tools, work with files, perform calculations, and search the web. The project supports both **local inference through Ollama** and **cloud inference through Google Gemini**, along with a lightweight desktop assistant widget.
+A local-first AI assistant that uses an LLM to understand user requests, call tools, work with files, perform calculations, and search the web. The project supports both **local inference through Ollama** and **cloud inference through Google Gemini**.
 
 ## Overview
 
@@ -25,11 +25,9 @@ The project also includes a Gemini-based implementation and a Gemini-powered pro
 * Gemini-powered cloud agent
 * Gemini prompt optimization
 * Conversation context across agent turns
-* Desktop assistant widget
-* Global `Ctrl + Alt + A` hotkey
 * Streamlit-based application
 * Automatic Ollama and Streamlit launcher
-* Windows-focused desktop integration
+* Windows executable support through PyInstaller
 
 ---
 
@@ -45,10 +43,6 @@ The project follows a tool-using agent architecture:
                   |    Kev AI      |
                   |  User Interface|
                   +----------------+
-                     |           |
-             Streamlit       Desktop Widget
-                     |           |
-                     +-----+-----+
                            |
                            v
                   +----------------+
@@ -199,31 +193,6 @@ Final Response
 
 ---
 
-## Desktop Assistant Widget
-
-Kev AI includes a Windows desktop widget implemented with Tkinter.
-
-The widget:
-
-* Runs as a borderless window
-* Can be embedded into the Windows desktop layer
-* Provides a chat interface
-* Supports dragging
-* Can be shown or hidden with a global hotkey
-* Uses the local Qwen3 agent
-
-The default hotkey is:
-
-```text
-Ctrl + Alt + A
-```
-
-The widget configuration and hotkey are defined in `widget.py`.
-
-The widget also attempts to embed itself into the Windows desktop layer using Windows API calls through `pywin32`.
-
----
-
 ## Project Structure
 
 A simplified project structure is:
@@ -235,7 +204,6 @@ AI assistant/
 ├── main.py
 ├── main_ollama.py
 ├── launcher.py
-├── widget.py
 ├── tools.py
 ├── prompt_optimizer.py
 │
@@ -257,7 +225,6 @@ AI assistant/
 | `main_ollama.py`      | Local Ollama agent                         |
 | `tools.py`            | Tool implementations and tool declarations |
 | `prompt_optimizer.py` | Gemini-based prompt optimization           |
-| `widget.py`           | Desktop assistant widget                   |
 | `launcher.py`         | Starts Ollama and Streamlit                |
 | `app.py`              | Streamlit application                      |
 | `requirements.txt`    | Python dependencies                        |
@@ -291,8 +258,6 @@ The project uses packages including:
 * `streamlit`
 * `ddgs`
 * `python-dotenv`
-* `pywin32`
-* `keyboard`
 * `pyinstaller`
 
 The complete pinned dependency list is available in `requirements.txt`.
@@ -386,24 +351,6 @@ It uses the configured Gemini API key and maintains the interaction context betw
 
 ---
 
-## Running the Desktop Widget
-
-The desktop widget can be started with:
-
-```bash
-python widget.py
-```
-
-Once running, the assistant can be toggled using:
-
-```text
-Ctrl + Alt + A
-```
-
-The widget provides a compact chat interface directly on the Windows desktop.
-
----
-
 ## Running the Streamlit Application
 
 The project also includes a Streamlit application.
@@ -450,14 +397,6 @@ model = "qwen3:8b"
 
 ```text
 MAX_TURNS = 5
-```
-
-### Desktop Hotkey
-
-In `widget.py`:
-
-```text
-hotkey = "ctrl+alt+a"
 ```
 
 These settings can be changed to match the desired local setup.
@@ -509,7 +448,6 @@ This allows the project to be packaged as a Windows executable without requiring
 The current implementation has several areas that can be improved:
 
 * The local model's reasoning/tool-call behavior can result in multiple inference rounds.
-* The desktop widget is currently Windows-specific.
 * Gemini functionality requires an API key and internet connectivity.
 * The local agent depends on Ollama and a locally available model.
 * The current tool set is relatively small and can be expanded.
@@ -529,8 +467,6 @@ Potential future development includes:
 * More robust error handling
 * Streaming model responses
 * Configurable model selection
-* Improved desktop UI
-* Cross-platform desktop support
 * More complete packaging and distribution
 * Better separation between planning, verification, and execution
 
@@ -538,32 +474,28 @@ Potential future development includes:
 
 ## Tech Stack
 
-| Category            | Technology        |
-| ------------------- | ----------------- |
-| Assistant           | **Kev AI**        |
-| Language            | Python            |
-| Local LLM           | Ollama + Qwen3 8B |
-| Cloud LLM           | Google Gemini     |
-| UI                  | Streamlit         |
-| Desktop UI          | Tkinter           |
-| Web Search          | DDGS              |
-| Environment         | python-dotenv     |
-| Windows Integration | pywin32           |
-| Global Hotkeys      | keyboard          |
-| Packaging           | PyInstaller       |
+| Category    | Technology        |
+| ----------- | ----------------- |
+| Assistant   | **Kev AI**        |
+| Language    | Python            |
+| Local LLM   | Ollama + Qwen3 8B |
+| Cloud LLM   | Google Gemini     |
+| UI          | Streamlit         |
+| Web Search  | DDGS              |
+| Environment | python-dotenv     |
+| Packaging   | PyInstaller       |
 
 ---
 
 ## Project Status
 
-**Kev AI** is actively being developed as a personal AI-agent system focused on combining local LLM inference with practical tools and a desktop interface.
+**Kev AI** is actively being developed as a personal AI-agent system focused on combining local LLM inference with practical tools and a Streamlit interface.
 
-The current implementation supports local tool calling, file operations, calculations, web search, Gemini integration, prompt optimization, and a Windows desktop widget.
+The current implementation supports local tool calling, file operations, calculations, web search, Gemini integration, prompt optimization, and automated application startup.
 
 ---
 
 ## License
 
-License information has not yet been specified for this project.
-
-Add a license before distributing the project publicly.
+Shikhar Singh
+Ajay Kumar Garg Engineering College

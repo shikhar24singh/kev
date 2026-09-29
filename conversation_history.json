@@ -10,5 +10,13 @@
   {
     "role": "assistant",
     "content": "Hello! How can I assist you today?"
+  },
+  {
+    "role": "user",
+    "content": "Greet the user warmly and ask how you can assist them today."
+  },
+  {
+    "role": "assistant",
+    "content": "Hello there! It's wonderful to connect with you. How can I assist you today? Whether you're looking for some information, need help with a task, or just want to chat, I'm here to help!"
   }
 ]

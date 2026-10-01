@@ -5,3 +5,7 @@ __pycache__/
 build/
 conversation_history.json
 widget.py
+brag-output
+.agents
+workspace
+skills-lock.json

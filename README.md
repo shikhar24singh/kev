@@ -26,6 +26,7 @@ The project also includes a Gemini-based implementation and a Gemini-powered pro
 * Gemini prompt optimization
 * Conversation context across agent turns
 * Streamlit-based application
+* Optional Windows floating desktop widget
 * Automatic Ollama and Streamlit launcher
 * Windows executable support through PyInstaller
 
@@ -72,13 +73,19 @@ The agent currently exposes the following functions:
 | Tool          | Description                                   |
 | ------------- | --------------------------------------------- |
 | `read_file`   | Reads a text file from the agent workspace    |
-| `write_file`  | Creates or overwrites a file in the workspace |
+| `write_file`  | Creates a new file in the workspace           |
+| `edit_file`   | Prepares a focused replacement for user review |
 | `list_files`  | Lists files in the workspace                  |
 | `calculate`   | Evaluates supported mathematical expressions  |
 | `delete_file` | Deletes a file after explicit confirmation    |
 | `web_search`  | Searches the live web for current information |
 
 The available functions are registered in `tools.py`.
+
+When editing an existing file, Kev reads the full file first and proposes an exact,
+unique replacement. The widget, terminal, and Streamlit interface show the diff and ask
+for approval before writing it. The edit is rejected if the file changes while the proposal is being reviewed.
+`write_file` only creates new files, so it cannot bypass the review step.
 
 ### File Security
 
@@ -194,6 +201,14 @@ Final Response
 ---
 
 ## Project Structure
+
+### Desktop Widget
+
+On Windows, install the dependencies and run `start_widget.bat` to open a small,
+always-on-top Kev logo. Click the logo to open the PySide6 chat window; use the minus
+button to return to the logo, or press `Ctrl+Space` to show or hide Kev. The tray icon
+can restore or quit Kev. The widget calls the same local `run_agent_turn()` backend as
+the command-line agent; the Streamlit interface and its launcher remain available separately.
 
 A simplified project structure is:
 

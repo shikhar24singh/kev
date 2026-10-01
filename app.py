@@ -5,7 +5,7 @@ import ollama
 import time
 from prompt_optimizer import optimize_prompt
 
-from tools import AVAILABLE_FUNCTIONS
+from main_ollama import run_agent_turn as run_local_agent_turn, resolve_pending_edit
 
 model = "qwen3:8b"
 MAX_TURNS = 5
@@ -97,39 +97,9 @@ def run_agent_turn(user_message, messages):
     start_time = time.time()
     if needs_search(user_message):
         user_message += "\n\n(This requires current information - use web search tool to reply to this query)"
-    messages.append({"role":"user", "content" : user_message})
     messages = maybe_summarize_history(messages)
-
-    for turn in range(MAX_TURNS):
-        response = ollama.chat(
-            model = model,
-            messages = messages,
-            tools = list(AVAILABLE_FUNCTIONS.values())
-        )
-        messages.append(response.message)
-
-        tool_calls = response.message.tool_calls
-        if not tool_calls:
-            return response.message.content, messages
-
-        for call in tool_calls:
-            func = AVAILABLE_FUNCTIONS.get(call.function.name)
-            if func is None:
-                result = f"Error: Unknown tool called {call.function.name}"
-            else:
-                result = func(**call.function.arguments)
-
-            st.info(f"called '{call.function.name}' with {call.function.arguments}")
-            elapsed_time = time.time() - start_time
-            print(f"  (model responded in {elapsed_time:.2f} seconds)")
-
-            messages.append({
-                "role" : "tool",
-                "content" : str(result),
-                "tool_name": call.function.name,
-            })
-
-    return "Stopped after too many tool call rounds", messages
+    print(f"  (prompt preparation took {time.time() - start_time:.2f} seconds)")
+    return run_local_agent_turn(user_message, messages)
 
 st.title("Local AI Assistant")
 st.caption("Running qwen3:8b locally via Ollama")
@@ -139,7 +109,9 @@ if "messages" not in st.session_state:
         "role" : "system",
         "content" : "Never use emojis in your replies to a query. "
                     "Always use web search tool to answer related to current or recent events. "
-                    "Never uses em-dashes in your replies."
+                    "Never uses em-dashes in your replies. Read the complete file before editing, "
+                    "use edit_file to propose a focused change, and wait for user approval before "
+                    "applying it. Never use write_file to modify an existing file."
     }]
 
 for message in st.session_state.messages:
@@ -149,7 +121,7 @@ for message in st.session_state.messages:
         with st.chat_message(role):
             st.write(content)
 
-user_input = st.chat_input("Ask me to read or write a file...")
+user_input = st.chat_input("Ask Kev to read, create, or edit a file...")
 
 if user_input:
     with st.chat_message("user"):
@@ -157,11 +129,39 @@ if user_input:
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            answer, st.session_state.messages = run_agent_turn(user_input, st.session_state.messages)
+            turn_result = run_agent_turn(user_input, st.session_state.messages)
+            st.session_state.messages = turn_result.messages
 
-        st.write(answer)
+        if turn_result.pending_edit:
+            st.session_state.pending_file_edit = turn_result.pending_edit
+        else:
+            st.write(turn_result.answer)
 
     save_history(st.session_state.messages)
+
+if st.session_state.get("pending_file_edit"):
+    pending = st.session_state.pending_file_edit
+    proposal = pending["proposal"]
+    st.subheader(f"Review proposed edit: {proposal['filename']}")
+    st.code(proposal["diff"], language="diff", line_numbers=False)
+    apply_col, reject_col = st.columns(2)
+    with apply_col:
+        apply_clicked = st.button("Apply changes", type="primary", key="apply_file_edit")
+    with reject_col:
+        reject_clicked = st.button("Reject", key="reject_file_edit")
+
+    if apply_clicked or reject_clicked:
+        approved = apply_clicked
+        with st.spinner("Applying approved edit and finishing the response..." if approved else "Finishing the response..."):
+            turn_result = resolve_pending_edit(
+                pending,
+                approved,
+                st.session_state.messages,
+            )
+        st.session_state.messages = turn_result.messages
+        st.session_state.pending_file_edit = turn_result.pending_edit
+        save_history(st.session_state.messages)
+        st.rerun()
 
 if st.sidebar.button("Clear Conversation"):
     st.session_state.messages = []
